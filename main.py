@@ -28,4 +28,4 @@ async def arch_start(message: types.Message):
     await Form.next()
 
 
-@dp.message_handler(commands = )
+# @dp.message_handler(commands = )
