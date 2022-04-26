@@ -1,0 +1,8 @@
+TOKEN = "5199219043:AAGLFoid9KyCsExlCCkVvlqDV2qMBn2D-Pw"
+MY_ID = "1043481858"
+
+HOST = "127.0.0.1"
+PORT = "5432"
+DB_NAME = "tg_bot"
+USER = "kadyr"
+PASSWORD = "kadyr"
