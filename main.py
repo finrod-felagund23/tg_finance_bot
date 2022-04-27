@@ -12,20 +12,18 @@ import logging
 bot = Bot(TOKEN)
 dp = Dispatcher(bot, storage = MemoryStorage())
 logging.basicConfig(level = logging.INFO)
-dp.middleware.setup(LoggingMiddleware)
+dp.middleware.setup(LoggingMiddleware())
 
 
-class Form(StatesGroup):
-    before_start = State()
+@dp.message_handler(commands = ['start'])
+async def start_process(message: types.Message):
+    signal = await lg.create_user_table(message.from_user.username)
+    print(signal)
+    if signal == 'exists':
+        await message.reply('Аккаунт уже существовал!')
+    elif signal == 'not exists':
+        await message.reply('Аккаунт создан!')
 
 
-Form.before_start.set()
-
-
-@dp.message_handler(state = Form.before_start, commands = ['start'])
-async def arch_start(message: types.Message):
-    await lg.create_user_table(message.from_user.username)
-    await Form.next()
-
-
-# @dp.message_handler(commands = )
+if __name__ == '__main__':
+    executor.start_polling(dp)
