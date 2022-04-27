@@ -8,15 +8,18 @@ my_cur = my_conn.cursor()
 
 
 async def create_user_table(username: str = '', cur: cursor = my_cur, conn: connection = my_conn) -> str:
+    """
+    Создание таблицы юзера и его категорий. Внесение в категории дефолтных алиасов и категорий.
+    :param username: Уникальный юзернейм пользователя телеграм
+    :param cur:
+    :param conn:
+    :return: статус завершения
+    """
     ret = 'not exists'
-    print(cur)
-    print(conn)
-    print(username)
-
     cur.execute(f""" SELECT EXISTS(SELECT * FROM information_schema.columns WHERE TABLE_NAME='{username.lower()}')""")
-    # print(cur.fetchone())
     if cur.fetchone()[0]:
         ret = 'exists'
+
     cur.execute(f"""
     CREATE TABLE IF NOT EXISTS {username}
     (
@@ -51,6 +54,20 @@ async def create_user_table(username: str = '', cur: cursor = my_cur, conn: conn
             INSERT INTO categories_{username}
                 VALUES ( %s, %s )""", x)
 
-
     conn.commit()
     return ret
+
+
+async def add_expense(msg) -> str:
+    """
+    Парсинг сообщения, определение его категории по алиасу, добавление в базу данных.
+    :param msg: Обычный message: types.Message
+    :return: Полное сообщение пользователю о добавлении расхода или ошибке с ним
+    """
+    msg_text = msg.text
+    cost, *alias = tuple(msg_text.split())
+
+
+    return f'cost={cost}:::alias={alias}'
+
+

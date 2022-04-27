@@ -25,5 +25,10 @@ async def start_process(message: types.Message):
         await message.reply('Аккаунт создан!')
 
 
+@dp.message_handler(content_types = ['text'])
+async def add_expense(message: types.Message):
+    status = await lg.add_expense(message)
+    await message.reply(status)
+
 if __name__ == '__main__':
     executor.start_polling(dp)
