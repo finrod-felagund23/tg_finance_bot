@@ -1,7 +1,8 @@
 from config import DB_NAME, HOST, PORT, PASSWORD, USER
 from psycopg2.extensions import cursor, connection
 import psycopg2
-
+from aiogram import types
+import re
 
 my_conn = psycopg2.connect(host = HOST, port = PORT, database = DB_NAME, password = PASSWORD, user = USER)
 my_cur = my_conn.cursor()
@@ -58,16 +59,33 @@ async def create_user_table(username: str = '', cur: cursor = my_cur, conn: conn
     return ret
 
 
-async def add_expense(msg) -> str:
+async def add_expense(msg: types.Message, cur: cursor = my_cur, conn: connection = my_conn) -> str:
     """
     Парсинг сообщения, определение его категории по алиасу, добавление в базу данных.
+    :param cur:
+    :param conn:
     :param msg: Обычный message: types.Message
     :return: Полное сообщение пользователю о добавлении расхода или ошибке с ним
     """
-    msg_text = msg.text
-    cost, *alias = tuple(msg_text.split())
 
+    # первым словом должно идти число где есть 1 или больше чисел, вторым, слово вообще любое
+    match = re.match(r'\d+ .*$', msg.text)
+    cost, alias, *surplus = tuple(match.group().split())
+    print(f'surplus=={surplus}')
 
-    return f'cost={cost}:::alias={alias}'
+    category = 'Прочее'
+    for name, aliases in cur.fetchall():
+        if alias in aliases:
+            category = name[:]
+            break
 
+    cur.execute(f"""
+    INSERT INTO {msg.from_user.username.lower()} ( cost_name, cost, category )
+        VALUES ( %s, %s, %s )""", [str(alias), float(cost), str(category)])
 
+    cur.execute(f"""SELECT * FROM {msg.from_user.username.lower()}""")
+    # await msg.reply('Тест успешен!')
+    print(cur.fetchall())
+    conn.commit()
+
+    return f'Расход {alias} был добавлен в категорию {category}'
