@@ -18,6 +18,7 @@ async def create_user_table(username: str = '', cur: cursor = my_cur, conn: conn
     """
     ret = 'not exists'
     cur.execute(f""" SELECT EXISTS(SELECT * FROM information_schema.columns WHERE TABLE_NAME='{username.lower()}')""")
+    # TODO need test for know "exists this table?"
     if cur.fetchone()[0]:
         ret = 'exists'
 
@@ -56,6 +57,7 @@ async def create_user_table(username: str = '', cur: cursor = my_cur, conn: conn
                 VALUES ( %s, %s )""", x)
 
     conn.commit()
+    # TODO test for know created tables or not?
     return ret
 
 
@@ -70,6 +72,7 @@ async def add_expense(msg: types.Message, cur: cursor = my_cur, conn: connection
 
     # первым словом должно идти число где есть 1 или больше чисел, вторым, слово вообще любое
     match = re.match(r'\d+ .*$', msg.text)
+    # TODO: here need test!
     cost, alias, *surplus = tuple(match.group().split())
     print(f'surplus=={surplus}')
 
@@ -84,8 +87,28 @@ async def add_expense(msg: types.Message, cur: cursor = my_cur, conn: connection
         VALUES ( %s, %s, %s )""", [str(alias), float(cost), str(category)])
 
     cur.execute(f"""SELECT * FROM {msg.from_user.username.lower()}""")
+    # TODO and here!
     # await msg.reply('Тест успешен!')
     print(cur.fetchall())
     conn.commit()
 
     return f'Расход {alias} был добавлен в категорию {category}'
+
+
+async def delete_category(msg: types.Message, cur: cursor = my_cur, conn: connection = my_conn) -> str:
+    cur.execute(f"""SELECT name FROM categories_{msg.from_user.username.lower()} WHERE name = '{msg.text}'""")
+    if not cur.fetchall():
+        return f'Категории {msg.text} не существует!'
+    cur.execute(f"""DELETE FROM categories_{msg.from_user.username.lower()} WHERE name = '{msg.text}'""")
+    # TODO: Maybe write test here?
+    return f'Категория {msg.text} удалена!'
+
+
+async def change_category(msg: types.Message, cur: cursor = my_cur, conn: connection = my_conn) -> str:
+    # TODO: complete change_category function
+    pass
+
+
+async def create_new_category(msg: types.Message, cur: cursor = my_cur, conn: connection = my_conn) -> str:
+    # TODO: complete create_category function
+    pass
